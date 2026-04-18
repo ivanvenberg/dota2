@@ -20,36 +20,37 @@ export default function GameBoard({ playerId, isHost }: { playerId: string; isHo
   const [loadingQ, setLoadingQ] = useState(false);
   const [diceAnim, setDiceAnim] = useState(false);
 
-  // ── useStorage: root.game is a plain object, use dot access ──────────────
-  const phase          = useStorage((root) => root.game.phase);
-  const currentPlayerIndex = useStorage((root) => root.game.currentPlayerIndex);
-  const playerOrder    = useStorage((root) => root.game.playerOrder);
-  const round          = useStorage((root) => root.game.round);
-  const maxRounds      = useStorage((root) => root.game.maxRounds);
-  const diceRoll       = useStorage((root) => root.game.diceRoll);
-  const currentQuestion = useStorage((root) => root.game.currentQuestion);
-  const currentDuel    = useStorage((root) => root.game.currentDuel);
-  const expertChallenge = useStorage((root) => root.game.expertChallenge);
-  const lastEvent      = useStorage((root) => root.game.lastEvent);
+  // ── useStorage: dot access, all nullable, provide defaults ───────────────
+  const phase             = useStorage((root) => root.game.phase) ?? "playing";
+  const currentPlayerIndex = useStorage((root) => root.game.currentPlayerIndex) ?? 0;
+  const playerOrder       = useStorage((root) => root.game.playerOrder) ?? [];
+  const round             = useStorage((root) => root.game.round) ?? 1;
+  const maxRounds         = useStorage((root) => root.game.maxRounds) ?? 6;
+  const diceRoll          = useStorage((root) => root.game.diceRoll);
+  const currentQuestion   = useStorage((root) => root.game.currentQuestion);
+  const currentDuel       = useStorage((root) => root.game.currentDuel);
+  const expertChallenge   = useStorage((root) => root.game.expertChallenge);
+  const lastEvent         = useStorage((root) => root.game.lastEvent) ?? "";
 
   const chat = useStorage((root) => {
     const a: any[] = [];
     root.chat.forEach((m) => a.push(m));
     return a.slice(-20);
-  });
+  }) ?? [];
 
-  const players = useStorage((root) => {
+  const playersRaw = useStorage((root) => {
     const a: any[] = [];
     root.players.forEach((v) => a.push(v));
     return a;
   });
+  const players: any[] = playersRaw ?? [];
 
-const currentPlayerId = playerOrder?.[currentPlayerIndex ?? 0] ?? "";
-const isMyTurn = currentPlayerId === playerId;
-const currentPlayer = players?.find((p: any) => p.id === currentPlayerId);
-const myPlayer = players?.find((p: any) => p.id === playerId);
+  const currentPlayerId = playerOrder[currentPlayerIndex] ?? "";
+  const isMyTurn = currentPlayerId === playerId;
+  const currentPlayer = players.find((p: any) => p.id === currentPlayerId);
+  const myPlayer = players.find((p: any) => p.id === playerId);
 
-  // ── useMutation: storage.get("game") is a LiveObject, use .get() / .set() ─
+  // ── useMutation: storage.get() returns LiveObject, use .get() / .set() ───
 
   const advanceTurn = useMutation(({ storage }) => {
     const game = storage.get("game");
@@ -148,11 +149,13 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
     if (!me) return;
     const q = storage.get("game").get("currentQuestion");
     const pts = getScoreForAnswer(correct, q?.difficulty ?? "medium", false);
-
     if (correct) {
       ap.set(playerId, { ...me, score: me.score + pts, answeredCorrectly: me.answeredCorrectly + 1 });
       storage.get("game").set("lastEvent", `✅ Correct! ${me.name} +${pts} pts!`);
-      storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `✅ ${me.name} +${pts} pts! 🎉`, type: "game-event", timestamp: Date.now() });
+      storage.get("chat").push({
+        id: Date.now().toString(), playerId: "system", playerName: "System",
+        message: `✅ ${me.name} +${pts} pts! 🎉`, type: "game-event", timestamp: Date.now(),
+      });
     } else {
       const newWrong = me.answeredWrong + 1;
       const existingNames = Array.from(ap.values()).map((p) => p.funnyName).filter((n): n is string => !!n);
@@ -160,10 +163,16 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
       ap.set(playerId, { ...me, answeredWrong: newWrong, funnyName: funny ?? me.funnyName });
       if (funny && !me.funnyName) {
         storage.get("game").set("lastEvent", `😂 WRONG! ${me.name} is now "${funny}" LMAO`);
-        storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `😂 ${me.name} → "${funny}" 💀`, type: "funny", timestamp: Date.now() });
+        storage.get("chat").push({
+          id: Date.now().toString(), playerId: "system", playerName: "System",
+          message: `😂 ${me.name} → "${funny}" 💀`, type: "funny", timestamp: Date.now(),
+        });
       } else {
         storage.get("game").set("lastEvent", `❌ Wrong! ${me.name} loses this round.`);
-        storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `❌ ${me.name} got it wrong`, type: "game-event", timestamp: Date.now() });
+        storage.get("chat").push({
+          id: Date.now().toString(), playerId: "system", playerName: "System",
+          message: `❌ ${me.name} got it wrong`, type: "game-event", timestamp: Date.now(),
+        });
       }
     }
   }, [playerId]);
@@ -176,7 +185,10 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
       correction, resolved: false, upheld: null,
     });
     storage.get("game").set("lastEvent", `🎓 Expert Challenge by ${me.name}!`);
-    storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `🎓 ${me.name} challenges this answer!`, type: "expert", timestamp: Date.now() });
+    storage.get("chat").push({
+      id: Date.now().toString(), playerId: "system", playerName: "System",
+      message: `🎓 ${me.name} challenges this answer!`, type: "expert", timestamp: Date.now(),
+    });
   }, [playerId]);
 
   const resolveExpertChallenge = useMutation(({ storage }, upheld: boolean) => {
@@ -189,16 +201,22 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
     if (upheld) {
       if (expert) ap.set(ch.challengerId, { ...expert, score: expert.score + 200 });
       game.set("lastEvent", `✅ Expert upheld! ${ch.challengerName} +200 pts!`);
-      storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `🎓 Expert was right! +200 pts`, type: "expert", timestamp: Date.now() });
+      storage.get("chat").push({
+        id: Date.now().toString(), playerId: "system", playerName: "System",
+        message: `🎓 Expert was right! +200 pts`, type: "expert", timestamp: Date.now(),
+      });
     } else {
       if (expert) ap.set(ch.challengerId, { ...expert, isBanned: true, banRoundsLeft: 1 });
       game.set("lastEvent", `🚫 Expert WRONG! ${ch.challengerName} banned 1 round lmaooo`);
-      storage.get("chat").push({ id: Date.now().toString(), playerId: "system", playerName: "System", message: `🚫 Expert was WRONG! Banned 💀`, type: "funny", timestamp: Date.now() });
+      storage.get("chat").push({
+        id: Date.now().toString(), playerId: "system", playerName: "System",
+        message: `🚫 Expert was WRONG! Banned 💀`, type: "funny", timestamp: Date.now(),
+      });
     }
     game.set("expertChallenge", { ...ch, resolved: true, upheld });
   }, [isHost]);
 
-  // ── Async handlers live outside useMutation ───────────────────────────────
+  // ── Async handlers outside useMutation ───────────────────────────────────
 
   const handleRoll = useCallback(async () => {
     if (!isMyTurn || loadingQ) return;
@@ -341,7 +359,7 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
             )}
             {!isMyTurn && phase === "playing" && (
               <div className="mt-4 text-center text-gray-500 py-2 text-sm">
-                Waiting for <span className="text-yellow-400 font-bold">{currentPlayer?.funnyName ?? currentPlayer?.name}</span>...
+                Waiting for <span className="text-yellow-400 font-bold">{currentPlayer?.funnyName ?? currentPlayer?.name ?? "..."}</span>...
               </div>
             )}
             {loadingQ && (
@@ -372,7 +390,9 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-white truncate">
-                        {player.funnyName ? <span className="text-orange-400">{player.funnyName}</span> : player.name}
+                        {player.funnyName
+                          ? <span className="text-orange-400">{player.funnyName}</span>
+                          : player.name}
                       </p>
                       <div className="flex gap-1">
                         {player.isExpert && <span className="text-[9px] text-cyan-400">🎓</span>}
@@ -400,14 +420,16 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
                     {msg.message}
                   </p>
                 ))}
-                {chat.length === 0 && <p className="text-gray-700 text-xs">Events will appear here...</p>}
+                {chat.length === 0 && (
+                  <p className="text-gray-700 text-xs">Events will appear here...</p>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Overlays */}
-        {phase === "question" && currentQuestion && (
+        {phase === "question" && currentQuestion != null && (
           <QuestionCard
             question={currentQuestion}
             playerId={playerId}
@@ -420,7 +442,7 @@ const myPlayer = players?.find((p: any) => p.id === playerId);
             onResolveChallenge={handleResolveAndAdvance}
           />
         )}
-        {phase === "duel" && currentDuel && (
+        {phase === "duel" && currentDuel != null && (
           <DuelModal
             duel={currentDuel}
             playerId={playerId}
