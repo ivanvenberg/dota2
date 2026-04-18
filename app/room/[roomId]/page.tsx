@@ -49,7 +49,7 @@ const INITIAL_GAME_STATE = {
 };
 
 function GameRoom({ playerId, playerName, isHost }: { playerId: string; playerName: string; isHost: boolean }) {
-  const phase = useStorage((root) => root.game.get("phase"));
+const phase = useStorage((root) => root.game.phase);
 
   const joinGame = useMutation(({ storage }) => {
     const players = storage.get("players");
