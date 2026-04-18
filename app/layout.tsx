@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Dota 2 Knowledge Game",
-  description: "Monopoly-style Dota 2 trivia battle with your squad",
+  description: "Monopoly-style Dota 2 trivia battle",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
