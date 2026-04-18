@@ -48,33 +48,47 @@ const INITIAL_GAME_STATE = {
   winnerIds: [] as string[],
 };
 
-function GameRoom({ playerId, playerName, isHost }: { playerId: string; playerName: string; isHost: boolean }) {
-const phase = useStorage((root) => root.game.phase);
+function GameRoom({
+  playerId,
+  playerName,
+  isHost,
+}: {
+  playerId: string;
+  playerName: string;
+  isHost: boolean;
+}) {
+  const phase = useStorage((root) => root.game.phase);
 
-  const joinGame = useMutation(({ storage }) => {
-    const players = storage.get("players");
-    if (!players.has(playerId)) {
-      players.set(playerId, {
-        id: playerId,
-        name: playerName,
-        heroId: "",
-        heroName: "",
-        position: 0,
-        score: 0,
-        isBanned: false,
-        banRoundsLeft: 0,
-        isExpert: false,
-        isHost,
-        answeredCorrectly: 0,
-        answeredWrong: 0,
-        mistakes: [],
-      });
-    }
-  }, [playerId, playerName, isHost]);
+  const joinGame = useMutation(
+    ({ storage }) => {
+      const players = storage.get("players");
+      if (!players.has(playerId)) {
+        players.set(playerId, {
+          id: playerId,
+          name: playerName,
+          heroId: "",
+          heroName: "",
+          position: 0,
+          score: 0,
+          isBanned: false,
+          banRoundsLeft: 0,
+          isExpert: false,
+          isHost,
+          answeredCorrectly: 0,
+          answeredWrong: 0,
+          mistakes: [],
+        });
+      }
+    },
+    [playerId, playerName, isHost]
+  );
 
-  useEffect(() => { joinGame(); }, [joinGame]);
+  useEffect(() => {
+    joinGame();
+  }, [joinGame]);
 
-  if (phase === "lobby" || phase === "hero-select") return <Lobby playerId={playerId} isHost={isHost} />;
+  if (phase === "lobby" || phase === "hero-select")
+    return <Lobby playerId={playerId} isHost={isHost} />;
   if (phase === "results") return <Results playerId={playerId} />;
   return <GameBoard playerId={playerId} isHost={isHost} />;
 }
@@ -100,11 +114,15 @@ export default function RoomPage() {
     setReady(true);
   }, [router]);
 
-  if (!ready) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="text-center"><div className="text-5xl mb-4 animate-spin">⚔️</div><p className="text-gray-400">Loading...</p></div>
-    </div>
-  );
+  if (!ready)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-center">
+          <div className="text-5xl mb-4 animate-spin">⚔️</div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
 
   return (
     <RoomProvider
@@ -115,24 +133,27 @@ export default function RoomPage() {
         game: new LiveObject(INITIAL_GAME_STATE),
         chat: new LiveList([]),
       }}
-      authEndpoint={async () => {
-        const res = await fetch("/api/liveblocks-auth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ playerId, playerName, roomId }),
-        });
-        return res.json();
-      }}
     >
       <div className="fixed top-0 left-0 right-0 z-50 bg-gray-950 border-b border-gray-800 px-4 py-2 flex items-center justify-between text-sm">
         <span className="text-gray-500">Dota 2 Knowledge Game</span>
         <div className="flex items-center gap-3">
           <span className="text-gray-400">Room:</span>
-          <span className="font-mono font-bold text-yellow-400 tracking-widest bg-gray-900 px-3 py-1 rounded-lg border border-gray-700">{roomId}</span>
-          <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="text-xs text-gray-500 hover:text-gray-300">📋 Copy</button>
+          <span className="font-mono font-bold text-yellow-400 tracking-widest bg-gray-900 px-3 py-1 rounded-lg border border-gray-700">
+            {roomId}
+          </span>
+          <button
+            onClick={() => navigator.clipboard.writeText(window.location.href)}
+            className="text-xs text-gray-500 hover:text-gray-300"
+          >
+            📋 Copy
+          </button>
         </div>
         <div className="flex items-center gap-2">
-          {isHost && <span className="text-xs bg-yellow-500 text-black font-bold px-2 py-0.5 rounded-full">👑 HOST</span>}
+          {isHost && (
+            <span className="text-xs bg-yellow-500 text-black font-bold px-2 py-0.5 rounded-full">
+              👑 HOST
+            </span>
+          )}
           <span className="text-gray-400 text-xs">{playerName}</span>
         </div>
       </div>
