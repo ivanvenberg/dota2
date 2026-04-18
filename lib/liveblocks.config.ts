@@ -3,7 +3,23 @@ import { createRoomContext } from "@liveblocks/react";
 import { LiveList, LiveMap, LiveObject } from "@liveblocks/client";
 
 export const client = createClient({
-  authEndpoint: "/api/liveblocks-auth",
+  authEndpoint: async (room: string) => {
+    const playerId =
+      typeof window !== "undefined"
+        ? (localStorage.getItem("dota_player_id") ?? "unknown")
+        : "unknown";
+    const playerName =
+      typeof window !== "undefined"
+        ? (localStorage.getItem("dota_player_name") ?? "Player")
+        : "Player";
+
+    const res = await fetch("/api/liveblocks-auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerId, playerName, roomId: room }),
+    });
+    return res.json();
+  },
 });
 
 export type Question = {
