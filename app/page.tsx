@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
-import { generateRoomCode } from "@/lib/gameLogic";
+
+function generateRoomCode() {
+  return Math.random().toString(36).substring(2, 7).toUpperCase();
+}
 
 export default function Home() {
   const router = useRouter();
@@ -12,7 +15,7 @@ export default function Home() {
   const [error, setError] = useState("");
 
   function handleCreate() {
-    if (!name.trim()) return setError("Enter your name first, hero.");
+    if (!name.trim()) return setError("Enter your name first.");
     const roomId = generateRoomCode();
     const playerId = uuidv4();
     localStorage.setItem("dota_player_id", playerId);
@@ -33,25 +36,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
-      {/* Hero banner */}
       <div className="text-center mb-10">
         <div className="text-7xl mb-4">🏆</div>
-        <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-red-500 mb-2">
-          DOTA 2
-        </h1>
-        <h2 className="text-2xl font-bold text-gray-300 tracking-widest uppercase">
-          Knowledge Battleground
-        </h2>
+        <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-400 to-red-500 mb-2">DOTA 2</h1>
+        <h2 className="text-2xl font-bold text-gray-300 tracking-widest uppercase">Knowledge Battleground</h2>
         <p className="text-gray-500 mt-2 text-sm">Monopoly-style trivia. Counterpicks. Duels. Glory.</p>
       </div>
 
-      {/* Card */}
       <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md shadow-2xl">
-        {/* Name input always visible */}
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">
-            Your Name
-          </label>
+          <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">Your Name</label>
           <input
             type="text"
             value={name}
@@ -64,16 +58,10 @@ export default function Home() {
 
         {mode === "choose" && (
           <div className="flex flex-col gap-3">
-            <button
-              onClick={() => setMode("create")}
-              className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 shadow-lg"
-            >
+            <button onClick={() => setMode("create")} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105">
               ⚔️ Create Room (Host)
             </button>
-            <button
-              onClick={() => setMode("join")}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105 active:scale-95 shadow-lg"
-            >
+            <button onClick={() => setMode("join")} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105">
               🚪 Join Room
             </button>
           </div>
@@ -81,59 +69,35 @@ export default function Home() {
 
         {mode === "create" && (
           <div className="flex flex-col gap-4">
-            <p className="text-gray-400 text-sm text-center">
-              You'll be the <span className="text-yellow-400 font-bold">HOST</span> and can start the game, assign the expert, and ban wrong challengers.
-            </p>
+            <p className="text-gray-400 text-sm text-center">You'll be the <span className="text-yellow-400 font-bold">HOST</span> — start the game, assign the expert, ban wrong challengers.</p>
             <button onClick={handleCreate} className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105">
               🏁 Create Game Room
             </button>
-            <button onClick={() => setMode("choose")} className="text-gray-500 hover:text-gray-300 text-sm transition-colors">
-              ← Back
-            </button>
+            <button onClick={() => setMode("choose")} className="text-gray-500 hover:text-gray-300 text-sm transition-colors">← Back</button>
           </div>
         )}
 
         {mode === "join" && (
           <div className="flex flex-col gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">
-                Room Code
-              </label>
+              <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wider">Room Code</label>
               <input
                 type="text"
                 value={joinCode}
                 onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setError(""); }}
                 placeholder="e.g. XK9FQ"
                 maxLength={5}
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono text-xl text-center tracking-widest uppercase"
+                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono text-xl text-center tracking-widest uppercase"
               />
             </div>
             <button onClick={handleJoin} className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-4 rounded-xl text-lg transition-all hover:scale-105">
               🚪 Join Game
             </button>
-            <button onClick={() => setMode("choose")} className="text-gray-500 hover:text-gray-300 text-sm transition-colors">
-              ← Back
-            </button>
+            <button onClick={() => setMode("choose")} className="text-gray-500 hover:text-gray-300 text-sm transition-colors">← Back</button>
           </div>
         )}
 
-        {error && (
-          <p className="mt-4 text-red-400 text-sm text-center font-semibold">{error}</p>
-        )}
-      </div>
-
-      {/* Feature list */}
-      <div className="mt-10 grid grid-cols-2 gap-3 max-w-md w-full text-center">
-        {[
-          { emoji: "⚔️", text: "Counterpick Questions" },
-          { emoji: "🥊", text: "Player Duels" },
-          { emoji: "🎓", text: "Expert Role" },
-          { emoji: "😂", text: "Funny Nicknames" },
-        ].map(({ emoji, text }) => (
-          <div key={text} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-gray-400 text-sm">
-            <span className="text-lg">{emoji}</span> {text}
-          </div>
-        ))}
+        {error && <p className="mt-4 text-red-400 text-sm text-center font-semibold">{error}</p>}
       </div>
     </main>
   );
