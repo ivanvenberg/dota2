@@ -44,10 +44,10 @@ export default function GameBoard({ playerId, isHost }: { playerId: string; isHo
     return a;
   });
 
-  const currentPlayerId = playerOrder?.[currentPlayerIndex ?? 0] ?? "";
-  const isMyTurn = currentPlayerId === playerId;
-  const currentPlayer = players.find((p: any) => p.id === currentPlayerId);
-  const myPlayer = players.find((p: any) => p.id === playerId);
+const currentPlayerId = playerOrder?.[currentPlayerIndex ?? 0] ?? "";
+const isMyTurn = currentPlayerId === playerId;
+const currentPlayer = players?.find((p: any) => p.id === currentPlayerId);
+const myPlayer = players?.find((p: any) => p.id === playerId);
 
   // ── useMutation: storage.get("game") is a LiveObject, use .get() / .set() ─
 
