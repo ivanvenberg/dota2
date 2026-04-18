@@ -12,7 +12,7 @@ export default function Lobby({ playerId, isHost }: { playerId: string; isHost: 
     root.players.forEach((v) => arr.push(v));
     return arr;
   });
-  const phase = useStorage((root) => root.game.get("phase"));
+ const phase = useStorage((root) => root.game.phase);
   const myPlayer = players.find((p) => p.id === playerId);
 
   const startHeroSelect = useMutation(({ storage }) => {
