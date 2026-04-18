@@ -6,6 +6,17 @@ export const client = createClient({
   authEndpoint: "/api/liveblocks-auth",
 });
 
+export type Question = {
+  type: "counterpick" | "combat" | "ability" | "trivia" | "duel";
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  hero1?: string | null;
+  hero2?: string | null;
+  difficulty: "easy" | "medium" | "hard";
+};
+
 export type Player = {
   id: string;
   name: string;
@@ -23,18 +34,6 @@ export type Player = {
   mistakes: string[];
 };
 
-export type Question = {
-  type: "counterpick" | "combat" | "ability" | "trivia" | "duel";
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-  hero1?: string;
-  hero2?: string;
-  imageUrl?: string;
-  difficulty: "easy" | "medium" | "hard";
-};
-
 export type DuelState = {
   player1Id: string;
   player2Id: string;
@@ -46,13 +45,12 @@ export type DuelState = {
   winnerId: string | null;
 };
 
-export type ChatMessage = {
-  id: string;
-  playerId: string;
-  playerName: string;
-  message: string;
-  type: "chat" | "game-event" | "funny" | "expert";
-  timestamp: number;
+export type ExpertChallenge = {
+  challengerId: string;
+  challengerName: string;
+  correction: string;
+  resolved: boolean;
+  upheld: boolean | null;
 };
 
 export type GameState = {
@@ -64,16 +62,19 @@ export type GameState = {
   diceRoll: number | null;
   currentQuestion: Question | null;
   currentDuel: DuelState | null;
-  expertChallenge: {
-    challengerId: string;
-    challengerName: string;
-    correction: string;
-    resolved: boolean;
-    upheld: boolean | null;
-  } | null;
+  expertChallenge: ExpertChallenge | null;
   squareTypes: string[];
   lastEvent: string;
   winnerIds: string[];
+};
+
+export type ChatMessage = {
+  id: string;
+  playerId: string;
+  playerName: string;
+  message: string;
+  type: string;
+  timestamp: number;
 };
 
 export type Storage = {
@@ -89,9 +90,7 @@ export type Presence = {
 
 export type UserMeta = {
   id: string;
-  info: {
-    name: string;
-  };
+  info: { name: string };
 };
 
 export const {
@@ -101,7 +100,6 @@ export const {
   useUpdateMyPresence,
   useSelf,
   useOthers,
-  useOthersMapped,
   useStorage,
   useMutation,
   useBroadcastEvent,
